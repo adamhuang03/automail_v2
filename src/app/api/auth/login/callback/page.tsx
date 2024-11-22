@@ -47,7 +47,7 @@ export default function AuthCallback() {
           }
         }
 
-        router.replace('/home');
+        router.replace('/prompt');
       } else {
         router.replace('/login');
       }

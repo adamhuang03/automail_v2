@@ -30,7 +30,7 @@ export default function LoginComponent() {
           console.log('Session has expired, please log in again.')
           return
         }
-        router.push('/home')
+        router.push('/prompt')
         return
       }
 
