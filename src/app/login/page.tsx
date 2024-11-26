@@ -55,7 +55,7 @@ export default function LoginComponent() {
       if (error) {
         setError(error.message)
       }
-    } catch (err) {
+    } catch (error) {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -123,7 +123,12 @@ export default function LoginComponent() {
           <CardContent>
             <div className="flex flex-col space-y-2">
               <Button variant="outline" onClick={() => handleSocialLogin('google', true)} disabled={loading}>
-                <img height="15" width="15" src="https://www.vectorlogo.zone/logos/google/google-icon.svg" />
+                <Image
+                  height={15}
+                  width={15}
+                  src="https://www.vectorlogo.zone/logos/google/google-icon.svg"
+                  alt="Google logo"
+                />
                 <div className='ml-2'>Log in with Google</div>
               </Button>
                 {/* <Button variant="outline" onClick={() => handleMsLogin('azure', true)} disabled={loading}>

@@ -8,9 +8,11 @@ export default function Home() {
 
   useEffect(() => {
     // Simulate a small delay before redirect (to show spinner), you can remove this if you don't need a delay
+    setLoading(true);
     setTimeout(() => {
       router.replace('/login');
     }, 1000); // Redirect after 1 second (adjust the delay as needed)
+    setLoading(false);
   }, [router]);
 
   return (
