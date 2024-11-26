@@ -126,13 +126,13 @@ export default function PromptEmailPage() {
     <div className="container mx-auto p-4">
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Search Person and Email Template</CardTitle>
+          <CardTitle>Automail AI</CardTitle>
           <CardDescription>Enter a description of the person you want to search for and an email template you liked.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="person-prompt">Person Description</Label>
+              <Label htmlFor="person-prompt">Prompt</Label>
               <Textarea
                 id="person-prompt"
                 placeholder="Describe the person you want to search for..."
@@ -145,7 +145,7 @@ export default function PromptEmailPage() {
               <Label htmlFor="email-template">Email Template</Label>
               <Textarea
                 id="email-template"
-                placeholder="Paste your preferred email template here..."
+                placeholder="Paste your reference email template here..."
                 value={emailTemplate}
                 onChange={(e) => setEmailTemplate(e.target.value)}
                 className="min-h-[150px]"
