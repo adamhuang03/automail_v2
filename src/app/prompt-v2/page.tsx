@@ -1,173 +1,145 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { supabase } from '@/lib/db/supabase'
-import { LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useState, KeyboardEvent } from 'react'
+import { useChat } from 'ai/react'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { PlusCircle, Send, Bot, User } from 'lucide-react'
 
-export default function PromptEmailPage() {
-  const [personPrompt, setPersonPrompt] = useState('')
-  const [emailTemplate, setEmailTemplate] = useState('')
-  // const [loading, setLoading] = useState(false)
-  const router = useRouter()
+const INITIAL_MESSAGES = [
+  {
+    id: crypto.randomUUID(),
+    role: 'assistant' as const,
+    content: "Hey how many emails do you want to send out this week (up to 25)",
+  },
+]
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const QUESTIONS = [
+  "Hey how many emails do you want to send out this week (up to 25)",
+  "Awesome! Which firms do you want to reach out to and the locations? (e.g. Evercore - New York, Moelis - San Francisco)",
+  "Perfect :) Do you have any preferences on the people you're looking to outreach so we can personalize the email? (e.g. Same university as me, same clubs as me, only Canadian universities). Be as specific or broad as you'd like - let us know if you don't want the emails personalized.",
+  "Thanks! Last step - can you please paste 3-5 of any past emails you've written that got replies? You can let me know where I should adjust the email for personalization",
+]
+
+export default function ChatInterface() {
+  const [step, setStep] = useState(0)
+  const [isTyping, setIsTyping] = useState(false)
+  const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
+    initialMessages: INITIAL_MESSAGES,
+  })
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session) {
-        const { data: profile, error: checkError } = await supabase
-          .from('user_profile')
-          .select("*")
-          .eq('id', session.user.id)
-          .single()
+    if (!input.trim()) return
 
-        if (checkError) {
-          console.error('Error checking user profile:', checkError)
-          return
-        }
+    handleSubmit(e)
 
-        if (!profile.user_prompt_id) {
-          console.log('Has ID', profile)
-          const { error } = await supabase
-            .from('user_prompt')
-            .insert([
-              {
-                prompt: personPrompt,
-                template: emailTemplate
-              }
-            ])
-  
-          if (error) {
-            console.error('Error saving prompts:', error)
-            return
-          }
-          
-          const { data: promptData, error: promptError } = await supabase
-            .from('user_prompt')
-            .select('id')
-            .order('created_at', { ascending: false })
-            .limit(1)
+    const nextStep = step + 1
+    setStep(nextStep)
 
-          if (promptError) {
-            console.error('Error fetching latest prompt:', promptError)
-            return
-          }
-  
-          // Update user_profile with the latest prompts
-          const { error: updateError } = await supabase
-            .from('user_profile')
-            .update({
-              user_prompt_id: promptData ? promptData[0]?.id : null
-            })
-            .eq('id', session.user.id)
-  
-          if (updateError) {
-            console.error('Error updating user profile:', updateError)
-            return
-          }
-  
-          // Reset form on successful save
-          setPersonPrompt('')
-          setEmailTemplate('')
-        } else {
-          alert('Prompt already exists, wait for system to generate emails')
-        }
-
-      }
-    } catch (err) {
-      console.error('Error submitting prompts:', err)
+    if (nextStep < 4) {
+      setIsTyping(true)
+      setTimeout(() => {
+        setMessages((prevMessages) => [...prevMessages, { 
+          id: crypto.randomUUID(), 
+          role: 'assistant' as const, 
+          content: QUESTIONS[nextStep] 
+        }])
+        setIsTyping(false)
+      }, 1500)
+    } else if (nextStep === 4) {
+      setIsTyping(true)
+      setTimeout(() => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { 
+            id: crypto.randomUUID(), 
+            role: 'assistant' as const, 
+            content: "Sounds good! I'll send over an excel with all the emails drafted and the professionals' personalized emails" 
+          },
+        ])
+        setIsTyping(false)
+      }, 1500)
     }
   }
 
-  useEffect(() => {
-    (async () => {
-      try {
-        
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session) {
-          // Check if user exists in user_profile
-          const { error: fetchError } = await supabase
-            .from('user_profile')
-            .select()
-            .eq('id', session.user.id)
-            .single()
-
-          if (fetchError && fetchError.code === 'PGRST116') {
-            // User doesn't exist, create profile
-            const { error: insertError } = await supabase
-              .from('user_profile')
-              .insert([
-                { 
-                  id: session.user.id,
-                  full_name: session.user.user_metadata.name
-                }
-              ])
-
-            if (insertError) {
-              console.error('Error creating user profile:', insertError)
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error checking user profile:', err)
-      } finally {
-      }
-    })()
-  }, [])
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+    }
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Search Person and Email Template</CardTitle>
-          <CardDescription>Enter a description of the person you want to search for and an email template you liked.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="person-prompt">Person Description</Label>
-              <Textarea
-                id="person-prompt"
-                placeholder="Describe the person you want to search for..."
-                value={personPrompt}
-                onChange={(e) => setPersonPrompt(e.target.value)}
-                className="min-h-[100px]"
-              />
+    <div className="flex h-screen">
+      <div className="hidden md:flex md:w-[260px] md:flex-col bg-muted">
+        <div className="flex h-[60px] items-center px-4">
+          <h1 className="font-semibold">Email Outreach Assistant</h1>
+        </div>
+        <div className="flex-1 overflow-auto">
+          <div className="flex items-center px-4 py-2">
+            <Button variant="outline" className="w-full justify-start">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New chat
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col">
+        <header className="h-[60px] border-b flex items-center px-4 md:hidden">
+          <h1 className="font-semibold">Email Outreach Assistant</h1>
+        </header>
+        <ScrollArea className="flex-1 p-4">
+          {messages.map((message, i) => (
+            <div
+              key={i}
+              className={`flex mb-4 ${
+                message.role === 'assistant' ? 'justify-start' : 'justify-end'
+              }`}
+            >
+              {message.role === 'assistant' ? (
+                <Bot className="h-6 w-6 mr-2 text-blue-500 flex-shrink-0" />
+              ) : (
+                <User className="h-6 w-6 ml-2 text-green-500 flex-shrink-0" />
+              )}
+              <div
+                className={`rounded-lg p-3 max-w-[80%] ${
+                  message.role === 'assistant' ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'
+                }`}
+              >
+                {message.content}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email-template">Email Template</Label>
-              <Textarea
-                id="email-template"
-                placeholder="Paste your preferred email template here..."
-                value={emailTemplate}
-                onChange={(e) => setEmailTemplate(e.target.value)}
-                className="min-h-[150px]"
-              />
+          ))}
+          {isTyping && (
+            <div className="flex justify-start mb-4">
+              <Bot className="h-6 w-6 mr-2 text-blue-500 flex-shrink-0" />
+              <div className="bg-muted text-foreground rounded-lg p-3">
+                <div className="typing-animation">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full">Submit</Button>
-          </CardFooter>
-        </form>
-      </Card>
-      <div className="fixed top-4 right-4">
-        <Button
-          variant="outline"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            router.push('/login');
-          }}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
+          )}
+        </ScrollArea>
+        <div className="border-t p-4">
+          <form onSubmit={handleFormSubmit} className="flex items-start space-x-2">
+            <Textarea
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message here..."
+              className="flex-1 min-h-[80px] resize-none"
+              rows={3}
+            />
+            <Button type="submit" size="icon" className="mt-1">
+              <Send className="h-4 w-4" />
+              <span className="sr-only">Send</span>
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   )
