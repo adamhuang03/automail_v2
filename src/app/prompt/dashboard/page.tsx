@@ -22,14 +22,19 @@ export default function UserCsvDownload() {
 
   const handleDownload = async () => {
     if (!selectedUser) return
-
+  
     try {
       const selectedUserProfile = users.find(user => user.id === selectedUser);
       const csvContent = await generateCsv(selectedUser, selectedUserProfile?.user_prompt_id || '')
-      const encoder = new TextEncoder()
-      const bom = encoder.encode('\uFEFF') // UTF-8 BOM
-      const csvData = encoder.encode(csvContent)
-      const blob = new Blob([bom, csvData], { type: 'text/csv;charset=utf-8' })
+      
+      // Add UTF-8 BOM explicitly
+      const BOM = '\uFEFF'
+      const csvWithBOM = BOM + csvContent
+      
+      const blob = new Blob([csvWithBOM], { 
+        type: 'text/csv;charset=utf-8'
+      })
+      
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -40,6 +45,7 @@ export default function UserCsvDownload() {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Error generating CSV:', error)
     }
