@@ -261,12 +261,14 @@ export default function PromptEmailPage() {
     if (currentMailtoLinks.length > 0) {
       // Open all remaining emails
       for (let i = currentIndex; i < currentMailtoLinks.length; i++) {
-        console.log('Opening email', currentMailtoLinks[i])
-        window.open(currentMailtoLinks[i], '_blank');
+        setTimeout(() => {
+          console.log('Opening email', currentMailtoLinks[i])
+          window.open(currentMailtoLinks[i], '_blank');
+        }, 500);
       }
       // Close dialog and reload page
       setIsDialogOpen(false);
-      window.location.reload();
+      // window.location.reload();
     }
   };
 
