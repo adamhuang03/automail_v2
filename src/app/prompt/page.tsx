@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { supabase } from '@/lib/db/supabase'
 import { LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 import {
   Table,
@@ -41,6 +42,9 @@ export default function PromptEmailPage() {
   const [selectAll, setSelectAll] = useState(false)
   // const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [currentMailtoLinks, setCurrentMailtoLinks] = useState<string[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,7 +167,7 @@ export default function PromptEmailPage() {
                 .from('draft_emails')
                 .select('*')
                 .in('user_prompt_id', donePromptIds.map(prompt => prompt.id))
-                .eq('draft_count', 0)
+                // .eq('draft_count', 0)
               
               if (draftError) {
                 console.error('Error fetching draft emails:', draftError)
@@ -207,65 +211,118 @@ export default function PromptEmailPage() {
   };
 
   const handleEmailOpen = async (draftEmails: DraftEmail[], selectedOnly: boolean = false) => {
-    // Filter emails based on selection if selectedOnly is true
     const emailsToOpen = selectedOnly 
       ? draftEmails.filter(email => email.selected)
       : draftEmails;
+
+    try {
+      // Update draft count for each email individually
+      for (const email of emailsToOpen) {
+        email.draft_count += 1
+        const { error } = await supabase
+          .from('draft_emails')
+          .update({ draft_count: email.draft_count })
+          .eq('id', email.id)
+
+        if (error) {
+          console.error('Error updating draft count:', error)
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Error updating draft counts:', err)
+      return
+    }
 
     if (emailsToOpen.length === 0) {
       console.log('No emails selected');
       return;
     }
 
-    // Open mailto for each selected email
-    emailsToOpen.forEach(email => {
-      const mailtoLink = `mailto:${email.to_email}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
-      window.open(mailtoLink, '_blank');
-    });
+    // Create all mailto links first
+    const mailtoLinks = emailsToOpen.map(email => 
+      `mailto:${email.to_email}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`
+    );
 
-    // Update the draft_count for each selected email
-    await supabase
-      .from('draft_emails')
-      .update({ draft_count: 1 })
-      .in('id', emailsToOpen.map(email => email.id));
-    
-    window.location.reload();
+    // Open first email immediately
+    window.open(mailtoLinks[0], '_blank', 'noopener=true');
+
+    // Only show dialog if there are more emails
+    if (mailtoLinks.length > 1) {
+      setCurrentMailtoLinks(mailtoLinks);
+      setCurrentIndex(1); // Start from second email
+      setIsDialogOpen(true);
+    } else {
+      window.location.reload();
+    }
+  };
+
+  const handleContinue = () => {
+    if (currentMailtoLinks.length > 0) {
+      // Open all remaining emails
+      for (let i = currentIndex; i < currentMailtoLinks.length; i++) {
+        window.open(currentMailtoLinks[i], '_blank');
+      }
+      // Close dialog and reload page
+      setIsDialogOpen(false);
+      window.location.reload();
+    }
   };
 
   return (
-    <div className="container mx-auto p-4 mt-[50px]">
-      <Card className="w-full max-w-2xl mx-auto py-4">
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="person-prompt">Prompt</Label>
-              <Textarea
-                id="person-prompt"
-                placeholder="Describe the person you want to search for..."
-                value={personPrompt}
-                onChange={(e) => setPersonPrompt(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email-template">Email Template</Label>
-              <Textarea
-                id="email-template"
-                placeholder="Paste your reference email template here..."
-                value={emailTemplate}
-                onChange={(e) => setEmailTemplate(e.target.value)}
-                className="min-h-[150px]"
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full">Submit</Button>
-          </CardFooter>
-        </form>
-      </Card>
-      <Card className="w-full max-w-8xl mx-auto mt-4">
+    <>
+      <Dialog open={isDialogOpen} onOpenChange={() => {}}>
+        <DialogContent onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Email Draft Progress</DialogTitle>
+            <DialogDescription>
+              {`Ready to open rest of emails (${currentMailtoLinks.length - 1}/${currentMailtoLinks.length})?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Stop
+            </Button>
+            <Button onClick={handleContinue}>
+              {currentIndex === currentMailtoLinks.length - 1 ? "Open Emails" : "Continue"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="container mx-auto p-4 mt-[50px]">
+        <Card className="w-full max-w-2xl mx-auto py-4">
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="person-prompt">Prompt</Label>
+                <Textarea
+                  id="person-prompt"
+                  placeholder="Describe the person you want to search for..."
+                  value={personPrompt}
+                  onChange={(e) => setPersonPrompt(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-template">Email Template</Label>
+                <Textarea
+                  id="email-template"
+                  placeholder="Paste your reference email template here..."
+                  value={emailTemplate}
+                  onChange={(e) => setEmailTemplate(e.target.value)}
+                  className="min-h-[150px]"
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full">Submit</Button>
+            </CardFooter>
+          </form>
+        </Card>
+        <Card className="w-full max-w-8xl mx-auto mt-4">
           <CardContent>
-          <div className="space-y-2 mt-4">
+            <div className="space-y-2 mt-4">
               <Button
                 variant="outline"
                 className="mb-4"
@@ -292,7 +349,10 @@ export default function PromptEmailPage() {
                 </TableHeader>
                 <TableBody>
                   {draftEmails.map((email, index) => (
-                    <TableRow key={email.id}>
+                    <TableRow 
+                      key={email.id}
+                      className={email.draft_count > 0 ? "bg-green-100" : ""}
+                    >
                       <TableCell className="w-[50px] pr-4">
                         <Checkbox
                           checked={email.selected}
@@ -322,37 +382,38 @@ export default function PromptEmailPage() {
               </Table>
             </div>
           </CardContent>
-      </Card>
-      <div className="fixed top-4 right-4">
-        <div className="flex gap-2">
-          {
-            (
-              user?.id === '6c8178ed-9919-4a5b-8d15-9b8e70e6c22d' || 
-              user?.id === 'de173630-8c83-48d5-b87b-bf9321237ffe'
-            ) && 
-              <Button
-                variant="outline"
-                onClick={() => {
-                  router.push('/prompt/dashboard');
-                }}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                View Dashboard
-              </Button>
-          }
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              router.push('/login');
-            }}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+        </Card>
+        <div className="fixed top-4 right-4">
+          <div className="flex gap-2">
+            {
+              (
+                user?.id === '6c8178ed-9919-4a5b-8d15-9b8e70e6c22d' || 
+                user?.id === 'de173630-8c83-48d5-b87b-bf9321237ffe'
+              ) && 
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    router.push('/prompt/dashboard');
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  View Dashboard
+                </Button>
+            }
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.push('/login');
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
