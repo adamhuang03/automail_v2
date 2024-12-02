@@ -261,6 +261,7 @@ export default function PromptEmailPage() {
     if (currentMailtoLinks.length > 0) {
       // Open all remaining emails
       for (let i = currentIndex; i < currentMailtoLinks.length; i++) {
+        console.log('Opening email', currentMailtoLinks[i])
         window.open(currentMailtoLinks[i], '_blank');
       }
       // Close dialog and reload page
@@ -373,7 +374,7 @@ export default function PromptEmailPage() {
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                          {email.linkedin_url.replace('https://www.linkedin.com/in/', '')}
+                          {email.linkedin_url.replace('https://www.linkedin.com/in/', '').slice(0, 10)}...
                         </a>
                       </TableCell>
                     </TableRow>
