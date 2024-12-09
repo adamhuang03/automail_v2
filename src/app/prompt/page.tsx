@@ -40,6 +40,7 @@ export default function PromptEmailPage() {
   const [emailTemplate, setEmailTemplate] = useState('')
   const [draftEmails, setDraftEmails] = useState<DraftEmail[]>([])
   const [selectAll, setSelectAll] = useState(false)
+  const [draftFilter, setDraftFilter] = useState<'all' | 'drafted' | 'undrafted'>('all')
   // const [loading, setLoading] = useState(false)
   const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -193,22 +194,57 @@ export default function PromptEmailPage() {
     })()
   }, [])
 
-  useEffect(() => {
+  const handleEmailSelection = (emailId: string) => {
     setDraftEmails(prevEmails => 
-      prevEmails.map(email => ({
-        ...email,
-        selected: selectAll
-      }))
-    );
-  }, [selectAll]);
-
-  const handleEmailSelection = (index: number) => {
-    setDraftEmails(prevEmails => 
-      prevEmails.map((email, i) => 
-        i === index ? { ...email, selected: !email.selected } : email
+      prevEmails.map(email => 
+        email.id === emailId ? { ...email, selected: !email.selected } : email
       )
     );
   };
+
+  useEffect(() => {
+    const filteredEmails = draftEmails.filter(email => {
+      if (draftFilter === 'drafted') return email.draft_count > 0;
+      if (draftFilter === 'undrafted') return email.draft_count === 0;
+      return true;
+    });
+    
+    // Update selectAll based on whether all filtered emails are selected
+    setSelectAll(
+      filteredEmails.length > 0 && 
+      filteredEmails.every(email => email.selected)
+    );
+  }, [draftEmails, draftFilter]);
+
+  useEffect(() => {
+    if (selectAll) {
+      setDraftEmails(prevEmails => 
+        prevEmails.map(email => {
+          if (
+            (draftFilter === 'drafted' && email.draft_count > 0) ||
+            (draftFilter === 'undrafted' && email.draft_count === 0) ||
+            draftFilter === 'all'
+          ) {
+            return { ...email, selected: true };
+          }
+          return email;
+        })
+      );
+    } else {
+      setDraftEmails(prevEmails => 
+        prevEmails.map(email => {
+          if (
+            (draftFilter === 'drafted' && email.draft_count > 0) ||
+            (draftFilter === 'undrafted' && email.draft_count === 0) ||
+            draftFilter === 'all'
+          ) {
+            return { ...email, selected: false };
+          }
+          return email;
+        })
+      );
+    }
+  }, [selectAll, draftFilter]);
 
   const handleEmailOpen = async (draftEmails: DraftEmail[], selectedOnly: boolean = false) => {
     const emailsToOpen = selectedOnly 
@@ -328,20 +364,49 @@ export default function PromptEmailPage() {
             <div className="space-y-2 mt-4">
               <Button
                 variant="outline"
-                className="mb-4"
+                className="mb-4 mr-2"
                 onClick={() => {
                   handleEmailOpen(draftEmails, true);
                 }}
               >
                 Open Selected Emails
               </Button>
+              <div className="mb-4 space-x-2">
+                <Button
+                  variant={draftFilter === 'all' ? "default" : "outline"}
+                  onClick={() => {
+                    setDraftFilter('all');
+                    setSelectAll(false);
+                  }}
+                >
+                  All Emails
+                </Button>
+                <Button
+                  variant={draftFilter === 'undrafted' ? "default" : "outline"}
+                  onClick={() => {
+                    setDraftFilter('undrafted');
+                    setSelectAll(false);
+                  }}
+                >
+                  Undrafted
+                </Button>
+                <Button
+                  variant={draftFilter === 'drafted' ? "default" : "outline"}
+                  onClick={() => {
+                    setDraftFilter('drafted');
+                    setSelectAll(false);
+                  }}
+                >
+                  Drafted
+                </Button>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px] pr-4">
                       <Checkbox
                         checked={selectAll}
-                        onCheckedChange={(checked) => setSelectAll(checked as boolean)}
+                        onCheckedChange={(checked: boolean) => setSelectAll(checked)}
                       />
                     </TableHead>
                     <TableHead className="pr-4">Email</TableHead>
@@ -351,36 +416,42 @@ export default function PromptEmailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {draftEmails.map((email, index) => (
-                    <TableRow 
-                      key={email.id}
-                      className={email.draft_count > 0 ? "bg-green-100" : ""}
-                    >
-                      <TableCell className="w-[50px] pr-4">
-                        <Checkbox
-                          checked={email.selected}
-                          onCheckedChange={() => handleEmailSelection(index)}
-                        />
-                      </TableCell>
-                      <TableCell className="pr-4">{email.to_email}</TableCell>
-                      <TableCell className="pr-4">{email.subject}</TableCell>
-                      <TableCell className="pr-4 p-4">
-                        <div className="border rounded p-4 shadow-sm shadow-gray-200">
-                          <pre className="whitespace-pre-wrap font-['Open_Sans']">{email.body}</pre>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <a 
-                          href={email.linkedin_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          {email.linkedin_url.replace('https://www.linkedin.com/in/', '').slice(0, 10)}...
-                        </a>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {draftEmails
+                    .filter(email => {
+                      if (draftFilter === 'drafted') return email.draft_count > 0;
+                      if (draftFilter === 'undrafted') return email.draft_count === 0;
+                      return true;
+                    })
+                    .map((email, index) => (
+                      <TableRow 
+                        key={email.id}
+                        className={email.draft_count > 0 ? "bg-green-100" : ""}
+                      >
+                        <TableCell className="w-[50px] pr-4">
+                          <Checkbox
+                            checked={email.selected}
+                            onCheckedChange={() => handleEmailSelection(email.id)}
+                          />
+                        </TableCell>
+                        <TableCell className="pr-4">{email.to_email}</TableCell>
+                        <TableCell className="pr-4">{email.subject}</TableCell>
+                        <TableCell className="pr-4 p-4">
+                          <div className="border rounded p-4 shadow-sm shadow-gray-200">
+                            <pre className="whitespace-pre-wrap font-['Open_Sans']">{email.body}</pre>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <a 
+                            href={email.linkedin_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {email.linkedin_url.replace('https://www.linkedin.com/in/', '').slice(0, 10)}...
+                          </a>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>
@@ -419,4 +490,3 @@ export default function PromptEmailPage() {
     </>
   )
 }
-
