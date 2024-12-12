@@ -25,6 +25,7 @@ interface DraftEmail {
   id: string
   user_profile_id: string
   user_prompt_id: string
+  profile_urn_id: string
   linkedin_url: string
   to_email: string
   subject: string
