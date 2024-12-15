@@ -13,7 +13,7 @@ export async function generateCsv(userProfileId: string, userPromptId: string) {
   }
 
   // Create headers row
-  const headers = 'user_profile_id,user_prompt_id,linkedin_url,to_email,subject,body'
+  const headers = 'user_profile_id,user_prompt_id,urn_id,linkedin_url,to_email,subject,body'
 
   // Create CSV row from sample data
   const dataRow = `${sampleRow.user_profile_id},${sampleRow.user_prompt_id},${sampleRow.linkedin_url},${sampleRow.to_email},${sampleRow.subject},${sampleRow.body}`
