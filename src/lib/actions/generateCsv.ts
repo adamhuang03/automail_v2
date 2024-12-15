@@ -5,6 +5,7 @@ export async function generateCsv(userProfileId: string, userPromptId: string) {
   const sampleRow = {
     user_profile_id: userProfileId,
     user_prompt_id: userPromptId,
+    urn_id: 'sample-urn-id',
     linkedin_url: 'https://www.linkedin.com/in/sample-profile',
     to_email: 'sample@example.com', 
     subject: 'Sample Email Subject',
