@@ -65,8 +65,8 @@ interface UserProfile {
   created_at?: string
 }
 
-const url = 'http://127.0.0.1:8000'
-// const url = 'https://automail-ai-apple.vercel.app'
+// const url = 'http://127.0.0.1:8000'
+const url = 'https://automail-ai-apple.vercel.app'
 
 export default function NetworkingAssistant() {
   const [messages, setMessages] = useState<Message[]>([{
