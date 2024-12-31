@@ -840,20 +840,6 @@ export default function NetworkingAssistant() {
   };
 
   useEffect(() => {
-    const filteredEmails = draftEmails.filter(email => {
-      if (draftFilter === 'drafted') return email.draft_count > 0;
-      if (draftFilter === 'undrafted') return email.draft_count === 0;
-      return true;
-    });
-    
-    // Update selectAll based on whether all filtered emails are selected
-    setSelectAll(
-      filteredEmails.length > 0 && 
-      filteredEmails.every(email => email.selected)
-    );
-  }, [draftEmails, draftFilter]);
-
-  useEffect(() => {
     if (selectAll) {
       setDraftEmails(prevEmails => 
         prevEmails.map(email => {
