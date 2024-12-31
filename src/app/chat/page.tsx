@@ -80,7 +80,7 @@ export default function NetworkingAssistant() {
   // const freeTrialMessage = "You are currently on a free trial and have reached your email limit. If you\'d like to upgrade, come join us here!"
   const freeTrialMessage = (
     <span>
-      You are currently on a free trial and have reached your email limit. If you'd like to upgrade, come join us <a className="text-blue-600 underline" href="google.com">here</a>!
+      You are currently on a free trial and have reached your email limit. If you'd like to upgrade, come join us <a className="text-blue-600 underline" href="https://tally.so/r/3yjPvX">here</a>!
     </span>
   )
   const paidUserMessage = (
