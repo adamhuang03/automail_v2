@@ -1206,6 +1206,9 @@ export default function NetworkingAssistant() {
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-4 ml-4"
                     >
+                      <div className="ml-2 p-2 text-sm text-muted-foreground rounded-md border max-w-[20%]">
+                        {results.length} Selected
+                      </div>
                       <ScrollArea className="h-[300px] rounded-md border p-4 max-w-[80%]">
                         <div className="space-y-4">
                           {results.map((person) => (
