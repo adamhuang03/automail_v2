@@ -17,6 +17,7 @@ import { User } from '@supabase/supabase-js'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import clsx from 'clsx';
 import { Input } from '@/components/ui/input'
+import Image from 'next/image'
 
 interface Message {
   id: string
@@ -151,26 +152,35 @@ export default function NetworkingAssistant() {
       try {
         // Check if there is a user session
         const { data: { session } } = await supabase.auth.getSession()
+        let profile = null;
         
         if (session) {
           // If there is, grab a profile
-          const { data: profile, error: fetchError } = await supabase
+          const { data: profileExisiting, error: fetchError } = await supabase
             .from('user_profile')
             .select()
             .eq('id', session.user.id)
             .single()
+          profile = profileExisiting
+          console.log("Existing profile", profile)
 
           if (fetchError && fetchError.code === 'PGRST116') {
             // If there is no profile, create one
-            const { error: insertError } = await supabase
+            const { data: profileNew } = await supabase
               .from('user_profile')
               .insert([{ 
                 id: session.user.id,
                 full_name: session.user.user_metadata.name
               }])
+              .select('*')
+              .single()
 
-            if (insertError) {
-              console.error('Error creating user profile:', insertError)
+            if (!profileNew) {
+              console.error('Error creating user profile.')
+              return
+            } else {
+              profile = profileNew
+              console.log("New profile", profile)
             }
           } else {
             // If there is a profile, grab it
@@ -240,7 +250,7 @@ export default function NetworkingAssistant() {
                   .select('*')
                   .single()
                 if (updateProfileData) {
-                  console.log('here', updateProfileData)
+                  console.log('Updated user profile', updateProfileData)
                   setMessages(prev => prev.map(msg => 
                     msg.id === "1" 
                       ? { ...msg, content: message1, loading: false }
@@ -399,6 +409,12 @@ export default function NetworkingAssistant() {
       if (updateError) {
         console.error('Error updating user profile:', updateError)
       }
+
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: 'Thinking of search terms...', loading: true }
+          : msg
+      ))
       
       const parmsAndTargetsResponse = await fetch(`${url}/extract-prompt-data`, {
         method: 'POST',
@@ -416,6 +432,11 @@ export default function NetworkingAssistant() {
       setParams(parmsAndTargets.params)
       
       const targetsCleaned = []
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: 'Structuring search query...', loading: true }
+          : msg
+      ))
       for (const target of parmsAndTargets.targets) {
         const response = await fetch(`${url}/get-company-locations-id`, {
           method: 'POST',
@@ -454,6 +475,12 @@ export default function NetworkingAssistant() {
       console.log('Existing Public IDs:', existingPublicIds)
 
       const people = []
+
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: 'Running search...', loading: true }
+          : msg
+      ))
       
       for (const targetSet of targetsReady) {
         const limit = targetSet[0]
@@ -630,6 +657,11 @@ export default function NetworkingAssistant() {
       }, [] as { companyName: string, persons: typeof results[number][] }[]);
 
       console.log('Preparing for email format generation:', companySorting)
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: 'Searching for email addresses...', loading: true }
+          : msg
+      ))
       const emailFormatAndPattern = []
       for (const companySet of companySorting) {
         const companyName = companySet.companyName
@@ -674,6 +706,12 @@ export default function NetworkingAssistant() {
       if (emailFormatSaveError) {
         console.error('Error saving email format:', emailFormatSaveError)
       }
+
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: 'Generating personalized emails...', loading: true }
+          : msg
+      ))
 
       const chunkSize = 5;
       const chunks: Person[][] = [];
@@ -969,8 +1007,7 @@ export default function NetworkingAssistant() {
         <Card className="p-6">
           <div className="mb-6 flex justify-between">
             <div className="flex w-full items-center gap-2 text-2xl font-semibold">
-              <Bot className="h-8 w-8 text-primary" />
-              <h1>automail</h1>
+              <Image src="/images/automail-large.png" alt="automail logo" width={128} height={32} />
             </div>
             <form
               onSubmit={async (e) => {
@@ -1136,7 +1173,9 @@ export default function NetworkingAssistant() {
                         {message.loading ? (
                           <div className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>...</span>
+                            <i className="font-sans whitespace-pre-wrap text-muted-foreground">
+                              {message.content}
+                            </i>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">

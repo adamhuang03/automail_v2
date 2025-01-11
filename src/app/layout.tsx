@@ -19,10 +19,10 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Automail-v1",
+  title: "automail",
   description: "Beta version of Automail",
   icons: {
-    icon: '/favicon.png',
+    icon: '/automail-large-a-trans.png',
   },
 };
 
