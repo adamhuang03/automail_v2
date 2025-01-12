@@ -166,7 +166,7 @@ export default function NetworkingAssistant() {
 
           if (fetchError && fetchError.code === 'PGRST116') {
             // If there is no profile, create one
-            const { data: profileNew } = await supabase
+            const { data: profileNew, error: createError } = await supabase
               .from('user_profile')
               .insert([{ 
                 id: session.user.id,
@@ -179,6 +179,7 @@ export default function NetworkingAssistant() {
               console.error('Error creating user profile.')
               return
             } else {
+              console.log('Error creating user profile (if any)', createError)
               profile = profileNew
               console.log("New profile", profile)
             }
