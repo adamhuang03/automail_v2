@@ -182,6 +182,32 @@ export default function NetworkingAssistant() {
               console.log('Error creating user profile (if any)', createError)
               profile = profileNew
               console.log("New profile", profile)
+              const { data: updateProfileData, error: updateError } = await supabase
+                  .from('user_profile')
+                  .update({ 
+                    monthly_email_limit: 15,
+                    email_usage: 0
+                  })
+                  .eq('id', profile.id)
+                  .select('*')
+                  .single()
+                if (updateProfileData) {
+                  console.log('Updated user profile', updateProfileData)
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === "1" 
+                      ? { ...msg, content: message1, loading: false }
+                      : msg
+                  ))
+                  setUser(updateProfileData)
+                }
+                if (updateError) {
+                  console.error('Error updating user profile:', updateError)
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === "1" 
+                      ? { ...msg, content: "There was an error, please refresh the page.", loading: false }
+                      : msg
+                  ))
+                }
             }
           } else {
             // If there is a profile, grab it
