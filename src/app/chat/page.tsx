@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import clsx from 'clsx';
 import { Input } from '@/components/ui/input'
 import Image from 'next/image'
+import LinkedinDash from './linkedinComponent'
 
 interface Message {
   id: string
@@ -121,6 +122,9 @@ export default function NetworkingAssistant() {
   const [linkedinUrl, setLinkedinUrl] = useState<string>('');
   const [isSchoolDialogOpen, setIsSchoolDialogOpen] = useState(false);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const [hasLinkedin, setHasLinkedin] = useState(false);
+  const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
+  const [cookies, setCookies] = useState<any>(null)
 
   const questions = [
     'What senority would you like to target? (ie. Junior, Analyst, Principal, etc.)\n\nIf it doesn\'t matter, just type "any".',
@@ -212,6 +216,7 @@ export default function NetworkingAssistant() {
           } else {
             // If there is a profile, grab it
             console.log('User profile exists', profile)
+            setCookies(profile.cookies)
 
             if (profile?.monthly_refresh_date) {
               // we manually set the refresh date when paid customer signs up
@@ -470,7 +475,7 @@ export default function NetworkingAssistant() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ "input": target })
+          body: JSON.stringify({ "input": target, "cookies": cookies })
         })
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -522,6 +527,7 @@ export default function NetworkingAssistant() {
           location_urn: target[1],
           target_count: 10,
           school_urn_id: user?.school_urn_id || "",
+          cookies: cookies
         }
         console.log('Search Criteria:', searchCriteria)
 
@@ -701,7 +707,7 @@ export default function NetworkingAssistant() {
           },
           body: JSON.stringify({
             company: companyName,
-            names: nameList
+            names: nameList,
           })
         })
         if (!response.ok) {
@@ -756,7 +762,8 @@ export default function NetworkingAssistant() {
             url_list: urls,
             keyword_industry: params.keyword_industry,
             user_linkedin_url: userLinkedin,
-            email_template: emailTemplate
+            email_template: emailTemplate,
+            cookies: cookies
           })
         });
 
@@ -1474,6 +1481,15 @@ export default function NetworkingAssistant() {
             Copy Last Template
           </Button>
           
+        </div>
+        <div className="flex gap-2 flex-col mt-2">
+          <LinkedinDash 
+            userId={user?.id || ""} 
+            isLinkedInLoading={isLinkedInLoading}
+            setIsLinkedInLoading={setIsLinkedInLoading}
+            hasLinkedin={hasLinkedin}
+            setHasLinkedin={setHasLinkedin}
+          />
         </div>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={() => {}}>
