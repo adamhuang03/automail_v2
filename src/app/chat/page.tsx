@@ -1502,6 +1502,7 @@ export default function NetworkingAssistant() {
             hasLinkedin={hasLinkedin}
             setHasLinkedin={setHasLinkedin}
             setCookies={setCookies}
+            setMessages={setMessages}
           />
         </div>
       </div>
