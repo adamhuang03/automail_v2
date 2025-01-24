@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const { data: existingData, error: fetchError } = await supabaseServer
     .from("user_profile")
     .select("*")
-    .eq("profile_id", id)
+    .eq("id", id)
     if (!existingData || existingData.length === 0) {
     
         console.log("No account found ... adding one", fetchError);

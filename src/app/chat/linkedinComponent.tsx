@@ -83,6 +83,7 @@ export default function LinkedinDash({
           <Button
           variant="outline"
           onClick={() => setOpen(true)}
+          disabled={hasLinkedin}
           >
           <Image
               height={15}
@@ -91,7 +92,7 @@ export default function LinkedinDash({
               alt="LinkedIn logo"
               className="mr-2"
           />
-          { hasLinkedin ? 'Open Menu' : 'LinkedIn Login' }
+          { hasLinkedin ? 'Linkedin Available' : 'LinkedIn Login' }
           </Button>
       </DialogTrigger>
       {!hasLinkedin && (

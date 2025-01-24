@@ -217,6 +217,9 @@ export default function NetworkingAssistant() {
             // If there is a profile, grab it
             console.log('User profile exists', profile)
             setCookies(profile.cookies)
+            if (profile?.cookes && profile?.cookies.length > 0
+              && profile?.linkedin_email && profile?.linkedin_password
+            ) setHasLinkedin(true)
 
             if (profile?.monthly_refresh_date) {
               // we manually set the refresh date when paid customer signs up
