@@ -17,12 +17,14 @@ export default function LinkedinDash({
     setIsLinkedInLoading,
     hasLinkedin,
     setHasLinkedin,
+    setCookies
   }: {
     userId: string;
     isLinkedInLoading: boolean;
     setIsLinkedInLoading: Dispatch<SetStateAction<boolean>>;
     hasLinkedin: boolean;
     setHasLinkedin: Dispatch<SetStateAction<boolean>>;
+    setCookies: Dispatch<SetStateAction<any>>;
   }) {
     const { toast } = useToast()
     const [open, setOpen] = useState(false)
@@ -199,6 +201,7 @@ export default function LinkedinDash({
                     console.log(data);
                     console.log(data.cookies);
                     console.log(typeof data.cookies);
+                    setCookies(data.cookies);
 
                     const { data: inserted_linkedin, error } = await supabase
                     .from("user_profile")

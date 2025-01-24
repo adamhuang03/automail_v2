@@ -217,7 +217,7 @@ export default function NetworkingAssistant() {
             // If there is a profile, grab it
             console.log('User profile exists', profile)
             setCookies(profile.cookies)
-            if (profile?.cookes && profile?.cookies.length > 0
+            if (profile?.cookies && profile?.cookies.length > 0
               && profile?.linkedin_email && profile?.linkedin_password
             ) setHasLinkedin(true)
 
@@ -1492,6 +1492,7 @@ export default function NetworkingAssistant() {
             setIsLinkedInLoading={setIsLinkedInLoading}
             hasLinkedin={hasLinkedin}
             setHasLinkedin={setHasLinkedin}
+            setCookies={setCookies}
           />
         </div>
       </div>
