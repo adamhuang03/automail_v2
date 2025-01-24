@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { supabase } from '@/lib/db/supabase'
 // import ConnectionDialog, { Connection } from "@/app/chat/connectionDash";
 import { Loader2 } from "lucide-react";
-import { Message, message1 } from "./page";
+import { Message } from "./page";
 
 export default function LinkedinDash({
     userId,
@@ -29,6 +29,7 @@ export default function LinkedinDash({
     setCookies: Dispatch<SetStateAction<any>>;
     setMessages: Dispatch<SetStateAction<Message[]>>
   }) {
+    const message1 = "Hey! This is the automail at your service.\n\nWhat career path/industry are you targeting? (ie. Software Engineering, Investment Banking, etc.)"
     const { toast } = useToast()
     const [open, setOpen] = useState(false)
     const [openLogin, setOpenLogin] = useState(false)
