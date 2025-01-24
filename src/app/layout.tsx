@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "automail",
   description: "Beta version of Automail",
   icons: {
-    icon: '/images/automail-large-a-trans.png',
+    icon: '/images/favicon.ico',
   },
 };
 
