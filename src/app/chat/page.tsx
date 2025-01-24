@@ -237,7 +237,10 @@ export default function NetworkingAssistant() {
             let dummyHasLinkedin = false
             if (profile?.cookies && profile?.cookies.length > 0
               && profile?.linkedin_email && profile?.linkedin_password
-            ) setHasLinkedin(true); dummyHasLinkedin = true;
+            ) { 
+              setHasLinkedin(true);
+              dummyHasLinkedin = true;
+            }
 
             console.log('Has linkedin', dummyHasLinkedin)
 
@@ -777,7 +780,7 @@ export default function NetworkingAssistant() {
           body: JSON.stringify({
             url_list: urls,
             keyword_industry: params.keyword_industry,
-            user_linkedin_url: userLinkedin,
+            user_linkedin_url: user?.linkedin_url,
             email_template: emailTemplate,
             cookies: cookies
           })
