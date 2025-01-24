@@ -78,6 +78,7 @@ export default function NetworkingAssistant() {
     loading: true
   }])
   const message1 = "Hey! This is the automail at your service.\n\nWhat career path/industry are you targeting? (ie. Software Engineering, Investment Banking, etc.)"
+  const message1b = "Hey! This is the automail at your service.\n\nPlease login to LinkedIn to get started."
   const message2 = "What is your name?"
   // const freeTrialMessage = "You are currently on a free trial and have reached your email limit. If you\'d like to upgrade, come join us here!"
   const freeTrialMessage = (
@@ -199,7 +200,7 @@ export default function NetworkingAssistant() {
                   console.log('Updated user profile', updateProfileData)
                   setMessages(prev => prev.map(msg => 
                     msg.id === "1" 
-                      ? { ...msg, content: message1, loading: false }
+                      ? { ...msg, content: message1b, loading: false }
                       : msg
                   ))
                   setUser(updateProfileData)
@@ -214,12 +215,28 @@ export default function NetworkingAssistant() {
                 }
             }
           } else {
+            const setUpMessage = (dummyHasLinkedin: boolean) => {
+              if (dummyHasLinkedin) {
+                setMessages(prev => prev.map(msg => 
+                  msg.id === "1" 
+                    ? { ...msg, content: message1b, loading: false }
+                    : msg
+                ))
+              } else {
+                setMessages(prev => prev.map(msg => 
+                  msg.id === "1" 
+                    ? { ...msg, content: message1, loading: false }
+                    : msg
+                ))
+              }
+            }
             // If there is a profile, grab it
             console.log('User profile exists', profile)
             setCookies(profile.cookies)
+            let dummyHasLinkedin = false
             if (profile?.cookies && profile?.cookies.length > 0
               && profile?.linkedin_email && profile?.linkedin_password
-            ) setHasLinkedin(true)
+            ) setHasLinkedin(true); dummyHasLinkedin = true;
 
             if (profile?.monthly_refresh_date) {
               // we manually set the refresh date when paid customer signs up
@@ -248,11 +265,7 @@ export default function NetworkingAssistant() {
                 } else {
                   console.log('Successfully updated user profile usage set to 0, monthly refresh date updated to next month', updateData)
                   setUser(updateData)
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === "1" 
-                      ? { ...msg, content: message1, loading: false }
-                      : msg
-                  ))
+                  setUpMessage(dummyHasLinkedin)
                 }
               } else {
                 if (profile?.email_usage === profile?.monthly_email_limit) { // If no monthly_email_limit is set, meaning new user
@@ -265,11 +278,7 @@ export default function NetworkingAssistant() {
                   ))  
                 } else {
                   setUser(profile)
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === "1" 
-                      ? { ...msg, content: message1, loading: false }
-                      : msg
-                  ))
+                  setUpMessage(dummyHasLinkedin)
                 }
               }
 
@@ -286,11 +295,7 @@ export default function NetworkingAssistant() {
                   .single()
                 if (updateProfileData) {
                   console.log('Updated user profile', updateProfileData)
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === "1" 
-                      ? { ...msg, content: message1, loading: false }
-                      : msg
-                  ))
+                  setUpMessage(dummyHasLinkedin)
                   setUser(updateProfileData)
                 }
                 if (updateError) {
@@ -312,11 +317,7 @@ export default function NetworkingAssistant() {
                   ))  
                 } else {
                   setUser(profile)
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === "1" 
-                      ? { ...msg, content: message1, loading: false }
-                      : msg
-                  ))
+                  setUpMessage(dummyHasLinkedin)
                 }
               }
             }
@@ -1329,7 +1330,7 @@ export default function NetworkingAssistant() {
                   }
                 }}
                 placeholder="Type your message... (Shift+Enter for new line)"
-                disabled={isProcessing}
+                disabled={isProcessing || !hasLinkedin}
                 className="flex-1 min-h-[40px] max-h-[200px] resize-none transition-all duration-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scrollbar-track-transparent"
                 rows={1}
               />
