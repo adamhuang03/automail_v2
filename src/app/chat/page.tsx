@@ -1073,7 +1073,8 @@ export default function NetworkingAssistant() {
                       'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                      linkedin_url: linkedinUrl
+                      linkedin_url: linkedinUrl,
+                      cookies: cookies  
                     })
                   });
                   const data = await response.json();
