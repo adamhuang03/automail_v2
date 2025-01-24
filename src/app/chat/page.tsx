@@ -719,12 +719,20 @@ export default function NetworkingAssistant() {
         const output = await response.text()
         const parsedOutput = JSON.parse(output)
         const emailResults = parsedOutput.result
+        let updatedPersons = null
+        if (emailResults.length === 0) {
+          console.log('No email addresses found for company', companyName)
+          updatedPersons = companySet.persons.map((person, index) => ({
+            ...person,
+            emailAddress: 'verifying@gmail.com'
+          }));
+        } else {
+          updatedPersons = companySet.persons.map((person, index) => ({
+            ...person,
+            emailAddress: emailResults[index] || ''
+          }));
+        }
         emailFormatAndPattern.push(parsedOutput.format)
-
-        const updatedPersons = companySet.persons.map((person, index) => ({
-          ...person,
-          emailAddress: emailResults[index] || ''
-        }));
         
         updatedResultsWithEmail = [...updatedResultsWithEmail, ...updatedPersons];
         console.log('Output from email format generation:', parsedOutput)
