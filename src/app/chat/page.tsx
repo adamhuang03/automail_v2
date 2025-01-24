@@ -217,7 +217,7 @@ export default function NetworkingAssistant() {
             }
           } else {
             const setUpMessage = (dummyHasLinkedin: boolean) => {
-              if (dummyHasLinkedin) {
+              if (!dummyHasLinkedin) {
                 setMessages(prev => prev.map(msg => 
                   msg.id === "1" 
                     ? { ...msg, content: message1b, loading: false }
@@ -238,6 +238,8 @@ export default function NetworkingAssistant() {
             if (profile?.cookies && profile?.cookies.length > 0
               && profile?.linkedin_email && profile?.linkedin_password
             ) setHasLinkedin(true); dummyHasLinkedin = true;
+
+            console.log('Has linkedin', dummyHasLinkedin)
 
             if (profile?.monthly_refresh_date) {
               // we manually set the refresh date when paid customer signs up
@@ -318,6 +320,7 @@ export default function NetworkingAssistant() {
                   ))  
                 } else {
                   setUser(profile)
+                  console.log('here')
                   setUpMessage(dummyHasLinkedin)
                 }
               }
