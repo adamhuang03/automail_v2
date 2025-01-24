@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import LinkedinDash from './linkedinComponent'
 
-interface Message {
+export interface Message {
   id: string
   content: any 
   type: 'user' | 'assistant'
@@ -69,6 +69,7 @@ interface UserProfile {
 
 // const url = 'http://127.0.0.1:8000'
 const url = 'https://automail-ai-apple.vercel.app'
+export const message1 = "Hey! This is the automail at your service.\n\nWhat career path/industry are you targeting? (ie. Software Engineering, Investment Banking, etc.)"
 
 export default function NetworkingAssistant() {
   const [messages, setMessages] = useState<Message[]>([{
@@ -77,7 +78,6 @@ export default function NetworkingAssistant() {
     type: 'assistant',
     loading: true
   }])
-  const message1 = "Hey! This is the automail at your service.\n\nWhat career path/industry are you targeting? (ie. Software Engineering, Investment Banking, etc.)"
   const message1b = "Hey! This is the automail at your service.\n\nPlease login to LinkedIn to get started."
   const message2 = "What is your name?"
   // const freeTrialMessage = "You are currently on a free trial and have reached your email limit. If you\'d like to upgrade, come join us here!"

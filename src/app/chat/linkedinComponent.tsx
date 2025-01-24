@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { supabase } from '@/lib/db/supabase'
 // import ConnectionDialog, { Connection } from "@/app/chat/connectionDash";
 import { Loader2 } from "lucide-react";
+import { Message, message1 } from "./page";
 
 export default function LinkedinDash({
     userId,
@@ -17,7 +18,8 @@ export default function LinkedinDash({
     setIsLinkedInLoading,
     hasLinkedin,
     setHasLinkedin,
-    setCookies
+    setCookies,
+    setMessages,
   }: {
     userId: string;
     isLinkedInLoading: boolean;
@@ -25,6 +27,7 @@ export default function LinkedinDash({
     hasLinkedin: boolean;
     setHasLinkedin: Dispatch<SetStateAction<boolean>>;
     setCookies: Dispatch<SetStateAction<any>>;
+    setMessages: Dispatch<SetStateAction<Message[]>>
   }) {
     const { toast } = useToast()
     const [open, setOpen] = useState(false)
@@ -202,6 +205,11 @@ export default function LinkedinDash({
                     console.log(data.cookies);
                     console.log(typeof data.cookies);
                     setCookies(data.cookies);
+                    setMessages(prev => prev.map(msg => 
+                      msg.id === "1" 
+                        ? { ...msg, content: message1, loading: false }
+                        : msg
+                    ))
 
                     const { data: inserted_linkedin, error } = await supabase
                     .from("user_profile")
